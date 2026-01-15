@@ -1,6 +1,68 @@
 # Builder stage
 FROM ubuntu:24.04 AS build-stage
 
+RUN apt-get update
+RUN apt-get upgrade -y
+
+RUN mkdir -p /etc/sudoers.d && \
+    echo "theia ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/theia && \
+    chmod 0440 /etc/sudoers.d/theia
+
+RUN apt-get install -y python3 python3-pip python3-dev python3-psycopg2 python3-ldap python3-psutil
+RUN apt-get install -y git nano virtualenv gcc libxml2-dev libxslt1-dev libevent-dev libsasl2-dev libldap2-dev libpq-dev libpng-dev libjpeg-dev node-less node-clean-css xfonts-75dpi xfonts-base wget xz-utils nodejs npm vim openssh-client
+RUN apt-get install -y lsb-base lsb-release
+
+RUN git config --global alias.co checkout
+RUN git config --global alias.br branch
+RUN git config --global alias.ci commit
+RUN git config --global alias.st status
+
+RUN export VISUAL=vim
+RUN export EDITOR="$VISUAL"
+RUN echo $EDITOR
+RUN . ~/.bashrc
+
+# Install python 3.10.8, 3.11.8, 3.12.2
+RUN apt update
+RUN apt upgrade -y
+RUN apt install -y wget build-essential lib32readline-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev zlib1g-dev
+
+RUN cd ~
+RUN wget https://www.python.org/ftp/python/3.10.8/Python-3.10.8.tgz
+RUN tar xzf Python-3.10.8.tgz
+RUN cd Python-3.10.8 && ./configure --enable-optimizations
+RUN cd Python-3.10.8 && make altinstall
+
+RUN cd ~
+RUN wget https://www.python.org/ftp/python/3.11.8/Python-3.11.8.tgz
+RUN tar xzf Python-3.11.8.tgz
+RUN cd Python-3.11.8 && ./configure --enable-optimizations
+RUN cd Python-3.11.8 && make altinstall
+
+RUN cd ~
+RUN wget https://www.python.org/ftp/python/3.12.2/Python-3.12.2.tgz
+RUN tar xzf Python-3.12.2.tgz
+RUN cd Python-3.12.2 && ./configure --enable-optimizations
+RUN cd Python-3.12.2 && make altinstall
+
+
+# Install pew
+RUN pip3 install pew --break-system-packages
+RUN pip3 install pew[pythonz] --break-system-packages
+
+RUN apt install -y xfonts-base fontconfig libjpeg-turbo8 libxrender1 xfonts-75dpi
+RUN apt install wkhtmltopdf -y
+
+RUN apt install sudo -y
+
+RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" | tee  /etc/apt/sources.list.d/pgdg.list
+
+RUN apt-get update
+RUN apt-get install -y postgresql-16 postgresql-client-16
+RUN su - postgres -c "createuser -s abc with password 'abc'" 2> /dev/null || true
+RUN service postgresql start && sudo -u postgres psql -d postgres -c "CREATE ROLE abc SUPERUSER LOGIN REPLICATION CREATEDB CREATEROLE;"
+
 # Install Node.js 22 and required build tools
 RUN apt-get update && apt-get install -y \
     curl \
@@ -47,6 +109,68 @@ RUN yarn config set network-timeout 600000 -g && \
 # Production stage uses Ubuntu 24.04 base image
 FROM ubuntu:24.04 AS production-stage
 
+RUN apt-get update
+RUN apt-get upgrade -y
+
+RUN mkdir -p /etc/sudoers.d && \
+    echo "theia ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/theia && \
+    chmod 0440 /etc/sudoers.d/theia
+
+RUN apt-get install -y python3 python3-pip python3-dev python3-psycopg2 python3-ldap python3-psutil
+RUN apt-get install -y git nano virtualenv gcc libxml2-dev libxslt1-dev libevent-dev libsasl2-dev libldap2-dev libpq-dev libpng-dev libjpeg-dev node-less node-clean-css xfonts-75dpi xfonts-base wget xz-utils nodejs npm vim openssh-client
+RUN apt-get install -y lsb-base lsb-release
+
+RUN git config --global alias.co checkout
+RUN git config --global alias.br branch
+RUN git config --global alias.ci commit
+RUN git config --global alias.st status
+
+RUN export VISUAL=vim
+RUN export EDITOR="$VISUAL"
+RUN echo $EDITOR
+RUN . ~/.bashrc
+
+# Install python 3.10.8, 3.11.8, 3.12.2
+RUN apt update
+RUN apt upgrade -y
+RUN apt install -y wget build-essential lib32readline-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev zlib1g-dev
+
+RUN cd ~
+RUN wget https://www.python.org/ftp/python/3.10.8/Python-3.10.8.tgz
+RUN tar xzf Python-3.10.8.tgz
+RUN cd Python-3.10.8 && ./configure --enable-optimizations
+RUN cd Python-3.10.8 && make altinstall
+
+RUN cd ~
+RUN wget https://www.python.org/ftp/python/3.11.8/Python-3.11.8.tgz
+RUN tar xzf Python-3.11.8.tgz
+RUN cd Python-3.11.8 && ./configure --enable-optimizations
+RUN cd Python-3.11.8 && make altinstall
+
+RUN cd ~
+RUN wget https://www.python.org/ftp/python/3.12.2/Python-3.12.2.tgz
+RUN tar xzf Python-3.12.2.tgz
+RUN cd Python-3.12.2 && ./configure --enable-optimizations
+RUN cd Python-3.12.2 && make altinstall
+
+
+# Install pew
+RUN pip3 install pew --break-system-packages
+RUN pip3 install pew[pythonz] --break-system-packages
+
+RUN apt install -y xfonts-base fontconfig libjpeg-turbo8 libxrender1 xfonts-75dpi
+RUN apt install wkhtmltopdf -y
+
+RUN apt install sudo -y
+
+RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" | tee  /etc/apt/sources.list.d/pgdg.list
+
+RUN apt-get update
+RUN apt-get install -y postgresql-16 postgresql-client-16
+RUN su - postgres -c "createuser -s abc with password 'abc'" 2> /dev/null || true
+RUN service postgresql start && sudo -u postgres psql -d postgres -c "CREATE ROLE abc SUPERUSER LOGIN REPLICATION CREATEDB CREATEROLE;"
+
 # Install Node.js 22 (runtime only)
 RUN apt-get update && apt-get install -y \
     curl \
@@ -82,10 +206,6 @@ RUN apt-get update && apt-get install -y \
     maven \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-
-RUN mkdir -p /etc/sudoers.d && \
-    echo "theia ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/theia && \
-    chmod 0440 /etc/sudoers.d/theia
 
 ENV HOME=/home/theia
 WORKDIR /home/theia
